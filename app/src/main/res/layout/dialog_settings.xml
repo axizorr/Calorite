@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/btnCloseSettings"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="#FF4D4D"
+        android:text="X"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvSettingsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:fontFamily="@font/afacad"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvDailyCalorie"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Daily Calorie Intake"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginTop="24dp"
+        android:fontFamily="@font/afacad"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSettingsTitle" />
+
+    <EditText
+        android:id="@+id/etCalorieIntake"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/black"
+        android:fontFamily="@font/afacad"
+        android:hint="0"
+        android:inputType="number"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvDailyCalorie" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="kcal"
+        android:textColor="@color/black"
+        android:layout_marginStart="8dp"
+        android:fontFamily="@font/afacad"
+        app:layout_constraintBottom_toBottomOf="@id/etCalorieIntake"
+        app:layout_constraintStart_toEndOf="@id/etCalorieIntake"
+        app:layout_constraintTop_toTopOf="@id/etCalorieIntake" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

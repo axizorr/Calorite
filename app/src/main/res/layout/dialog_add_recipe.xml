@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/btnCloseAdd"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="#FF4D4D"
+            android:text="X"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvImageTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/afacad"
+            android:text="Image"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnCloseAdd" />
+
+        <Button
+            android:id="@+id/btnChooseFile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose File"
+            android:textAllCaps="false"
+            android:backgroundTint="#D3D3D3"
+            android:textColor="@color/black"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/afacad"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvImageTitle" />
+
+        <TextView
+            android:id="@+id/tvRecipeName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recipe Name"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/afacad"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnChooseFile" />
+
+        <EditText
+            android:id="@+id/etRecipeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/black"
+            android:fontFamily="@font/afacad"
+            android:textColor="@color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvRecipeName"
+            tools:layout_editor_absoluteX="20dp" />
+
+        <TextView
+            android:id="@+id/tvCalProTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Calories &amp; Protein"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/afacad"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/etRecipeName" />
+
+        <LinearLayout
+            android:id="@+id/llCalPro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/tvCalProTitle">
+
+            <EditText
+                android:id="@+id/etCal"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/black"
+                android:fontFamily="@font/afacad"
+                android:inputType="number"
+                android:textColor="@color/black" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="kcal"
+                android:textColor="@color/black"
+                android:fontFamily="@font/afacad" />
+
+            <EditText
+                android:id="@+id/etPro"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:backgroundTint="@color/black"
+                android:fontFamily="@font/afacad"
+                android:inputType="number"
+                android:textColor="@color/black" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="gr"
+                android:textColor="@color/black"
+                android:fontFamily="@font/afacad" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvDetailsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recipe Details"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/afacad"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llCalPro" />
+
+        <EditText
+            android:id="@+id/etRecipeDetails"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginTop="8dp"
+            android:background="#EEEEEE"
+            android:fontFamily="@font/afacad"
+            android:gravity="top|start"
+            android:inputType="textMultiLine"
+            android:padding="12dp"
+            android:textColor="@color/black"
+            app:layout_constraintTop_toBottomOf="@id/tvDetailsTitle"
+            tools:layout_editor_absoluteX="20dp" />
+
+        <Button
+            android:id="@+id/btnConfirmRecipe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/pastelgreen"
+            android:fontFamily="@font/afacad"
+            android:gravity="top|start"
+            android:text="Confirm"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/etRecipeDetails" />
+
+        <Button
+            android:id="@+id/btnDeleteRecipe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/pastelred"
+            android:fontFamily="@font/afacad"
+            android:gravity="top|start"
+            android:text="Delete"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/etRecipeDetails" />
+
+        <TextView
+            android:id="@+id/tvFileName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/afacad"
+            android:text="File_Name.jpg"
+            android:textColor="@color/black"
+            app:layout_constraintStart_toEndOf="@+id/btnChooseFile"
+            app:layout_constraintTop_toBottomOf="@+id/tvImageTitle" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
