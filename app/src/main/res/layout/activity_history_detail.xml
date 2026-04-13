@@ -57,12 +57,10 @@
                 <ImageView
                     android:id="@+id/ivProgressCalorie"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/clip_plate_cal" /> <ImageView
+                    android:layout_height="match_parent" /> <ImageView
                 android:id="@+id/ivProgressProtein"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/clip_plate_pro" /> </FrameLayout>
+                android:layout_height="match_parent" /> </FrameLayout>
 
             <TextView
             android:id="@+id/tvDetailPercent"

@@ -55,6 +55,32 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        ImageView ivCal = findViewById(R.id.ivProgressCalorie);
+        if (ivCal != null) {
+            android.graphics.drawable.Drawable drawableCal = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.img_plate_cal);
+
+            // PERISAI ANTI CRASH: Cek apakah gambarnya beneran ada
+            if (drawableCal != null) {
+                android.graphics.drawable.ClipDrawable clipCal = new android.graphics.drawable.ClipDrawable(drawableCal, android.view.Gravity.LEFT, android.graphics.drawable.ClipDrawable.HORIZONTAL);
+                ivCal.setImageDrawable(clipCal);
+            } else {
+                // Munculkan pesan di Logcat kalau gambarnya hilang, biar kita tahu tanpa bikin aplikasi crash
+                android.util.Log.e("CALORITE_ERROR", "Gawat! Gambar img_plate_cal.png tidak ditemukan!");
+            }
+        }
+
+        // --- MANTRA SUPER AMAN UNTUK PROTEIN ---
+        ImageView ivPro = findViewById(R.id.ivProgressProtein);
+        if (ivPro != null) {
+            android.graphics.drawable.Drawable drawablePro = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.img_plate_pro);
+
+            if (drawablePro != null) {
+                android.graphics.drawable.ClipDrawable clipPro = new android.graphics.drawable.ClipDrawable(drawablePro, android.view.Gravity.LEFT, android.graphics.drawable.ClipDrawable.HORIZONTAL);
+                ivPro.setImageDrawable(clipPro);
+            } else {
+                android.util.Log.e("CALORITE_ERROR", "Gawat! Gambar img_plate_pro.png tidak ditemukan!");
+            }
+        }
         long sevenDaysInMillis = 7L * 24 * 60 * 60 * 1000; // 7 hari dalam milidetik
         long thresholdTime = System.currentTimeMillis() - sevenDaysInMillis;
         AppDatabase.getInstance(this).foodDao().deleteOlderThan(thresholdTime);
@@ -426,7 +452,19 @@ public class MainActivity extends AppCompatActivity {
         int percentPro = (int) (((float) currentConsumedProtein / targetPro) * 100);
 
         int levelCalClip = Math.min(percentCal, 100) * 100;
-        int levelProClip = Math.min(percentPro, 100) * 100;
+        // percentPro adalah persentase aslimu (misal 27%)
+        int percentProMentok = Math.min(percentPro, 100);
+
+        // Titik awal daging (misal 20% dari kiri kanvas = 2000)
+        int startOffset = 2000;
+
+        // Pengali rentang (dari 20% ke 60% = rentang 40% = pengali 40)
+        int levelProClip = startOffset + (percentProMentok * 40);
+
+        // Kalau belum makan protein sama sekali (0%), kembalikan ke 0 biar aman
+        if (percentPro == 0) {
+            levelProClip = 0;
+        }
 
         // --- UPDATE TEKS ---
         TextView tvTargetKalori = findViewById(R.id.tvTargetKalori); // "1200 kcal / 3200 kcal"
@@ -439,18 +477,16 @@ public class MainActivity extends AppCompatActivity {
             tvTargetProtein.setText("with " + currentConsumedProtein + "gr / " + targetPro + "gr Protein");
         }
 
-        // --- UPDATE GAMBAR (PIRING & DAGING) ---
+        // --- UPDATE GAMBAR (PIRING & DAGING) ANTI CRASH ---
         ImageView ivProgressCalorie = findViewById(R.id.ivProgressCalorie);
         ImageView ivProgressProtein = findViewById(R.id.ivProgressProtein);
 
-        if (ivProgressCalorie != null) {
-            android.graphics.drawable.ClipDrawable calDrawable = (android.graphics.drawable.ClipDrawable) ivProgressCalorie.getDrawable();
-            calDrawable.setLevel(levelCalClip);
+        // Cek apakah ivProgressCalorie ada isinya, DAN apakah isinya benar-benar sebuah ClipDrawable
+        if (ivProgressCalorie != null && ivProgressCalorie.getDrawable() instanceof android.graphics.drawable.ClipDrawable) {
+            ivProgressCalorie.getDrawable().setLevel(levelCalClip);
         }
-
-        if (ivProgressProtein != null) {
-            android.graphics.drawable.ClipDrawable proDrawable = (android.graphics.drawable.ClipDrawable) ivProgressProtein.getDrawable();
-            proDrawable.setLevel(levelProClip);
+        if (ivProgressProtein != null && ivProgressProtein.getDrawable() instanceof android.graphics.drawable.ClipDrawable) {
+            ivProgressProtein.getDrawable().setLevel(levelProClip);
         }
 
         // --- 2. UPDATE BAGIAN BAWAH (DAFTAR HISTORI ASLI) ---
