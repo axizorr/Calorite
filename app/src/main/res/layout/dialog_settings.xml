@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/white"
@@ -68,5 +69,42 @@
         app:layout_constraintBottom_toBottomOf="@id/etCalorieIntake"
         app:layout_constraintStart_toEndOf="@id/etCalorieIntake"
         app:layout_constraintTop_toTopOf="@id/etCalorieIntake" />
+
+    <TextView
+        android:id="@+id/tvDailyProtein"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="@font/afacad"
+        android:text="Daily Protein Intake"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/etCalorieIntake" />
+
+    <EditText
+        android:id="@+id/etProteinIntake"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:backgroundTint="@color/black"
+        android:fontFamily="@font/afacad"
+        android:hint="0"
+        android:inputType="number"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvDailyProtein" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:fontFamily="@font/afacad"
+        android:text="gr"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toBottomOf="@+id/etProteinIntake"
+        app:layout_constraintStart_toEndOf="@+id/etProteinIntake"
+        app:layout_constraintTop_toTopOf="@+id/etProteinIntake" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

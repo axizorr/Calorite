@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.graphics.drawable.ClipDrawable;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.Window;
 import android.view.WindowManager;
@@ -35,7 +36,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.ByteArrayOutputStream;
 
@@ -77,22 +77,22 @@ public class MainActivity extends AppCompatActivity {
             dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
 
             EditText etCalorieIntake = dialog.findViewById(R.id.etCalorieIntake);
+            EditText etProteinIntake = dialog.findViewById(R.id.etProteinIntake); // Tambahkan ID ini di XML dialog_settings
             TextView btnClose = dialog.findViewById(R.id.btnCloseSettings);
 
-            // Tampilkan angka target yang tersimpan saat ini di kotak input
             etCalorieIntake.setText(String.valueOf(getTargetCalorie()));
+            etProteinIntake.setText(String.valueOf(getTargetProtein()));
 
-            // Aksi saat tombol X ditekan
             btnClose.setOnClickListener(view -> {
                 String inputCalorie = etCalorieIntake.getText().toString();
+                String inputProtein = etProteinIntake.getText().toString();
 
-                if (!inputCalorie.isEmpty()) {
-                    int newTarget = Integer.parseInt(inputCalorie);
-                    saveTargetCalorie(newTarget); // 1. Simpan ke ingatan HP
-                    updateDashboardUI();          // 2. Kalkulasi ulang layar!
+                if (!inputCalorie.isEmpty() && !inputProtein.isEmpty()) {
+                    saveTargetCalorie(Integer.parseInt(inputCalorie));
+                    saveTargetProtein(Integer.parseInt(inputProtein));
+                    updateDashboardUI(); // Kalkulasi ulang layar
                 }
-
-                dialog.dismiss(); // Tutup dialog
+                dialog.dismiss();
             });
 
             dialog.show();
@@ -175,16 +175,6 @@ public class MainActivity extends AppCompatActivity {
         // 2. Atur arah scroll jadi menyamping (Horizontal)
         rvHistory.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
-        ImageView ivProgressColor = findViewById(R.id.ivProgressColor);
-
-        // Simulasi mengatur progres ke 48%
-        int persentase = 48; // Nanti ini diganti dengan data aslimu
-        int level = persentase * 100; // Mengubah 48 menjadi 4800
-
-        // Mengambil fungsi ClipDrawable dan menerapkan levelnya
-        ClipDrawable progressDrawable = (ClipDrawable) ivProgressColor.getDrawable();
-        progressDrawable.setLevel(level);
-
         Button btnCapture = findViewById(R.id.btnCapture);
 
         btnCapture.setOnClickListener(v -> {
@@ -219,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
                 // --- 1. LOGIKA UNTUK MENAMBAH RESEP ---
                 if (requestCode == REQUEST_RECIPE_IMAGE_PICK) {
                     Uri selectedImageUri = data.getData();
-                    selectedRecipeBitmap = android.provider.MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
+                    selectedRecipeBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
 
                     if (tvFileNameGlobal != null) {
                         tvFileNameGlobal.setText("Image Selected ✓");
@@ -236,23 +226,44 @@ public class MainActivity extends AppCompatActivity {
                         imageBitmap = (Bitmap) extras.get("data");
                     } else if (requestCode == REQUEST_IMAGE_PICK) {
                         Uri selectedImageUri = data.getData();
-                        imageBitmap = android.provider.MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
+                        imageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
                     }
 
                     if (imageBitmap != null) {
                         // Kecilkan gambar dulu agar HP tidak hang saat kirim ke AI
                         Bitmap resizedBitmap = getResizedBitmap(imageBitmap, 1024);
 
-                        // Ubah gambar ke Base64 untuk disimpan ke Database nanti
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
-                        byte[] imageBytes = baos.toByteArray();
-                        String base64Image = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
+                        Dialog dialogHint = new Dialog(MainActivity.this);
+                        dialogHint.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                        dialogHint.setContentView(R.layout.dialog_hint);
 
-                        Toast.makeText(this, "AI sedang menganalisis makanan...", Toast.LENGTH_LONG).show();
+                        // Bikin latar belakang di luar pop-up jadi transparan/gelap
+                        dialogHint.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                        dialogHint.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
 
-                        // TEMBAK KE AI!
-                        analyzeFoodWithAI(resizedBitmap, base64Image);
+                        EditText etHint = dialogHint.findViewById(R.id.etHint);
+                        Button btnSkip = dialogHint.findViewById(R.id.btnSkipHint);
+                        Button btnAnalyze = dialogHint.findViewById(R.id.btnAnalyzeHint);
+
+                        // Aksi jika tombol "Analisis" ditekan
+                        btnAnalyze.setOnClickListener(v -> {
+                            String hint = etHint.getText().toString();
+                            String finalBase64 = bitmapToBase64(resizedBitmap);
+
+                            Toast.makeText(MainActivity.this, "AI sedang menghitung...", Toast.LENGTH_SHORT).show();
+                            analyzeFoodWithAI(resizedBitmap, finalBase64, hint);
+                            dialogHint.dismiss();
+                        });
+
+                        // Aksi jika tombol "Lewati" ditekan
+                        btnSkip.setOnClickListener(v -> {
+                            String finalBase64 = bitmapToBase64(resizedBitmap);
+                            Toast.makeText(MainActivity.this, "AI sedang menghitung...", Toast.LENGTH_SHORT).show();
+                            analyzeFoodWithAI(resizedBitmap, finalBase64, "Tidak ada keterangan tambahan.");
+                            dialogHint.dismiss();
+                        });
+
+                        dialogHint.show();
                     }
                 }
 
@@ -261,6 +272,13 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Gagal memproses gambar", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+    // Fungsi pembantu untuk mengubah Gambar menjadi teks Base64
+    private String bitmapToBase64(Bitmap bitmap) {
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
+        byte[] imageBytes = baos.toByteArray();
+        return android.util.Base64.encodeToString(imageBytes, android.util.Base64.NO_WRAP);
     }
     private Bitmap getResizedBitmap(Bitmap image, int maxSize) {
         int width = image.getWidth();
@@ -276,13 +294,14 @@ public class MainActivity extends AppCompatActivity {
         }
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
-    private void analyzeFoodWithAI(Bitmap imageBitmap, String base64Image) {
+    private void analyzeFoodWithAI(Bitmap imageBitmap, String base64Image, String userHint) {
         // 1. Inisialisasi Model (Gunakan API Key kamu)
         GenerativeModel gm = new GenerativeModel("gemini-2.5-flash-lite", "AIzaSyBp4YRQDg3nmYZiimJJkfBbtHDNvXFKXtM");
         GenerativeModelFutures model = GenerativeModelFutures.from(gm);
 
         // 2. Siapkan Prompt
         String prompt = "Kamu adalah ahli gizi. Analisis gambar ini." +
+                "\n\nKONTEKS DARI PENGGUNA: " + userHint +
                 "\n\n1. Jika ada tabel 'Informasi Nilai Gizi', ABAIKAN bentuk makanannya. Baca angkanya. Hitung Total Kalori & Protein untuk SATU BUNGKUS KESELURUHAN." +
                 "\n\n2. Jika TIDAK ADA tabel gizi, estimasi berdasarkan porsi di foto. Rincikan SETIAP komponen makanan beserta kalori dan proteinnya." +
                 "\n\nBalas WAJIB HANYA format JSON persis seperti ini tanpa markdown: " +
@@ -389,30 +408,50 @@ public class MainActivity extends AppCompatActivity {
         return sharedPreferences.getInt("TARGET_CALORIE", 2000);
     }
 
-    private int currentConsumedCalories = 576; // Contoh: 48% dari 1200
-
     private void updateDashboardUI() {
         int targetCal = getTargetCalorie();
+        int targetPro = getTargetProtein(); // Ambil target protein
         if (targetCal == 0) targetCal = 1;
+        if (targetPro == 0) targetPro = 1;
 
         String todayDate = getCurrentDateString();
-        AppDatabase db = AppDatabase.getInstance(this); // Panggil database
+        AppDatabase db = AppDatabase.getInstance(this);
 
-        // --- 1. UPDATE BAGIAN ATAS (PIRING & TARGET HARI INI) ---
+        // Hitung total kalori & protein hari ini
         int currentConsumedCalories = db.foodDao().getTotalCaloriesByDate(todayDate);
+        int currentConsumedProtein = db.foodDao().getTotalProteinByDate(todayDate);
 
-        int percentage = (int) (((float) currentConsumedCalories / targetCal) * 100);
-        int levelForClip = Math.min(percentage, 100) * 100;
+        // Kalkulasi Persentase
+        int percentCal = (int) (((float) currentConsumedCalories / targetCal) * 100);
+        int percentPro = (int) (((float) currentConsumedProtein / targetPro) * 100);
 
-        TextView tvTargetKalori = findViewById(R.id.tvTargetKalori);
-        TextView tvProgressPersen = findViewById(R.id.tvProgressPersen);
+        int levelCalClip = Math.min(percentCal, 100) * 100;
+        int levelProClip = Math.min(percentPro, 100) * 100;
+
+        // --- UPDATE TEKS ---
+        TextView tvTargetKalori = findViewById(R.id.tvTargetKalori); // "1200 kcal / 3200 kcal"
+        TextView tvProgressPersen = findViewById(R.id.tvProgressPersen); // "48% Daily Calories Reached"
+        TextView tvTargetProtein = findViewById(R.id.tvTargetProtein); // "with 57gr / 120gr Protein" (TAMBAHKAN ID INI DI XML)
 
         tvTargetKalori.setText(currentConsumedCalories + " kcal / " + targetCal + " kcal");
-        tvProgressPersen.setText(percentage + "% Daily Calories Reached");
+        tvProgressPersen.setText(percentCal + "% Daily Calories Reached");
+        if (tvTargetProtein != null) {
+            tvTargetProtein.setText("with " + currentConsumedProtein + "gr / " + targetPro + "gr Protein");
+        }
 
-        ImageView ivProgressColor = findViewById(R.id.ivProgressColor);
-        ClipDrawable progressDrawable = (ClipDrawable) ivProgressColor.getDrawable();
-        progressDrawable.setLevel(levelForClip);
+        // --- UPDATE GAMBAR (PIRING & DAGING) ---
+        ImageView ivProgressCalorie = findViewById(R.id.ivProgressCalorie);
+        ImageView ivProgressProtein = findViewById(R.id.ivProgressProtein);
+
+        if (ivProgressCalorie != null) {
+            android.graphics.drawable.ClipDrawable calDrawable = (android.graphics.drawable.ClipDrawable) ivProgressCalorie.getDrawable();
+            calDrawable.setLevel(levelCalClip);
+        }
+
+        if (ivProgressProtein != null) {
+            android.graphics.drawable.ClipDrawable proDrawable = (android.graphics.drawable.ClipDrawable) ivProgressProtein.getDrawable();
+            proDrawable.setLevel(levelProClip);
+        }
 
         // --- 2. UPDATE BAGIAN BAWAH (DAFTAR HISTORI ASLI) ---
         RecyclerView rvHistory = findViewById(R.id.rvHistory);
@@ -448,6 +487,19 @@ public class MainActivity extends AppCompatActivity {
         // Pasang ke Adapter baru
         RecipeAdapter recipeAdapter = new RecipeAdapter(this, savedRecipesList);
         rvSavedRecipes.setAdapter(recipeAdapter);
+    }
+    // Fungsi untuk menyimpan Target Protein
+    private void saveTargetProtein(int target) {
+        SharedPreferences sharedPreferences = getSharedPreferences("CaloriteSettings", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt("TARGET_PROTEIN", target);
+        editor.apply();
+    }
+
+    // Fungsi untuk mengambil Target Protein (Default 100gr jika belum pernah di-set)
+    private int getTargetProtein() {
+        SharedPreferences sharedPreferences = getSharedPreferences("CaloriteSettings", MODE_PRIVATE);
+        return sharedPreferences.getInt("TARGET_PROTEIN", 100);
     }
     private String getCurrentDateString() {
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());

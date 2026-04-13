@@ -58,19 +58,6 @@ public class HistoryDetailActivity extends AppCompatActivity {
         tvDetailTotalCal.setText("Calorites - Total " + totalCal + " kcal");
         tvDetailProteinTotal.setText("with " + totalProtein + "gr Protein");
 
-        // 5. Kalkulasi Persentase & Cat Piring
-        int targetCal = getTargetCalorie(); // Ambil dari SharedPreferences
-        int percentage = (int) (((float) totalCal / targetCal) * 100);
-        int levelForClip = Math.min(percentage, 100) * 100;
-
-        tvDetailPercent.setText(percentage + "% Daily Calories Reached");
-
-        ImageView ivDetailPlate = findViewById(R.id.ivDetailPlate);
-        ClipDrawable progressDrawable = (ClipDrawable) ivDetailPlate.getDrawable();
-        if (progressDrawable != null) {
-            progressDrawable.setLevel(levelForClip);
-        }
-
         // 6. Pasang Adapter ke RecyclerView
         RecyclerView rvDailyFoods = findViewById(R.id.rvDailyFoods);
         rvDailyFoods.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -110,21 +97,6 @@ public class HistoryDetailActivity extends AppCompatActivity {
 
         if(tvDetailTotalCal != null) tvDetailTotalCal.setText("Calorites - Total " + totalCal + " kcal");
         if(tvDetailProteinTotal != null) tvDetailProteinTotal.setText("with " + totalProtein + "gr Protein");
-
-        // Kalkulasi ulang cat piring
-        int targetCal = getTargetCalorie(); // Asumsi fungsi getTargetCalorie() sudah ada di file ini
-        int percentage = (int) (((float) totalCal / targetCal) * 100);
-        int levelForClip = Math.min(percentage, 100) * 100;
-
-        if(tvDetailPercent != null) tvDetailPercent.setText(percentage + "% Daily Calories Reached");
-
-        ImageView ivDetailPlate = findViewById(R.id.ivDetailPlate);
-        if (ivDetailPlate != null) {
-            android.graphics.drawable.ClipDrawable progressDrawable = (android.graphics.drawable.ClipDrawable) ivDetailPlate.getDrawable();
-            if (progressDrawable != null) {
-                progressDrawable.setLevel(levelForClip);
-            }
-        }
     }
     // Fungsi memunculkan Pop-up Gambar Fullscreen (Dipanggil dari Adapter)
     public void showImagePreviewDialog(String base64Image) {

@@ -34,4 +34,7 @@ public interface FoodDao {
 
     @androidx.room.Delete
     void deleteFood(FoodRecord food);
+
+    @Query("SELECT SUM(protein) FROM food_records WHERE dateString = :date")
+    int getTotalProteinByDate(String date);
 }

@@ -44,25 +44,27 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp">
-        <FrameLayout
-            android:layout_width="250dp"
-            android:layout_height="179dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="24dp">
-            <ImageView
-                android:id="@+id/ivBwPlate"
+            <FrameLayout
+                android:layout_width="300dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/mealtrackbw" />
+
+                <ImageView
+                    android:id="@+id/ivProgressCalorie"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/clip_plate_cal" /> <ImageView
+                android:id="@+id/ivProgressProtein"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:src="@drawable/mealtrackbw" />
-            <ImageView
-                android:id="@+id/ivDetailPlate"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:src="@drawable/clip_plate_color" />
-        </FrameLayout>
-        <TextView
+                android:src="@drawable/clip_plate_pro" /> </FrameLayout>
+
+            <TextView
             android:id="@+id/tvDetailPercent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
