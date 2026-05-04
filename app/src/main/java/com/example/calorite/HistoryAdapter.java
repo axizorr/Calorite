@@ -56,6 +56,22 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
             intent.putExtra("HISTORY_DATE", summary.getDate());
             context.startActivity(intent);
         });
+        String imageToLoad = summary.getImageBase64(); // Sesuaikan dengan getter di modelmu
+
+        if (imageToLoad != null && !imageToLoad.isEmpty()) {
+            try {
+                // Kalau ada kodenya, ubah jadi gambar
+                byte[] decodedString = android.util.Base64.decode(imageToLoad, android.util.Base64.DEFAULT);
+                android.graphics.Bitmap decodedByte = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                holder.ivHistoryThumb.setImageBitmap(decodedByte); // Sesuaikan ID ivHistoryImage milikmu
+            } catch (Exception e) {
+                e.printStackTrace();
+                holder.ivHistoryThumb.setImageResource(R.drawable.placeholder_write);
+            }
+        } else {
+            // KALAU KOSONG (karena yang terakhir di-input hari itu adalah manual)
+            holder.ivHistoryThumb.setImageResource(R.drawable.placeholder_write);
+        }
     }
 
     @Override

@@ -184,24 +184,37 @@
             android:id="@+id/btnCapture"
             android:layout_width="0dp"
             android:layout_height="60dp"
-            android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:backgroundTint="@color/pastelgreen"
             android:fontFamily="@font/afacad"
-            android:text="Capture  📷"
+            android:text="Capture 📷"
             android:textColor="#000000"
-            android:textSize="24sp" />
+            android:padding="4dp"
+            android:maxLines="1"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMinTextSize="12sp"
+            app:autoSizeMaxTextSize="24sp"
+            app:autoSizeStepGranularity="1sp" />
+
         <Button
             android:id="@+id/btnAddManual"
             android:layout_width="0dp"
             android:layout_height="60dp"
             android:layout_marginStart="8dp"
-            android:layout_weight="0.9"
             android:layout_marginEnd="8dp"
+            android:layout_weight="0.9"
             android:backgroundTint="#FED563"
+            android:fontFamily="@font/afacad"
             android:text="Add Manually ➕"
-            android:textColor="#000000" />
+            android:textColor="#000000"
+            android:padding="4dp"
+            android:maxLines="1"
+            app:autoSizeTextType="uniform"
+            app:autoSizeMinTextSize="12sp"
+            app:autoSizeMaxTextSize="19sp"
+            app:autoSizeStepGranularity="1sp" />
 
     </LinearLayout>
 

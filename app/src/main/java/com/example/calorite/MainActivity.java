@@ -524,6 +524,7 @@ public class MainActivity extends AppCompatActivity {
             // Tarik gambar terakhir dari database
             String lastImage = db.foodDao().getLastImageByDate(date);
 
+
             // Masukkan gambar ke dalam daftar
             realHistoryList.add(new HistorySummary(date, String.valueOf(totalCalForDate), percentForDate + "%", lastImage));
         }
@@ -626,20 +627,8 @@ public class MainActivity extends AppCompatActivity {
 
             int cal = Integer.parseInt(calStr);
             int pro = Integer.parseInt(proStr);
-
-            // LOGIKA PLACEHOLDER JIKA USER TIDAK PILIH GAMBAR
-            if (manualImageBase64.isEmpty()) {
-                android.graphics.Bitmap placeholderBitmap = android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.placeholder_write);
-                java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
-                placeholderBitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, bos);
-                manualImageBase64 = android.util.Base64.encodeToString(bos.toByteArray(), android.util.Base64.DEFAULT);
-            }
-
-            // Dapatkan tanggal hari ini (Samakan formatnya dengan DB kamu)
-            String today = new java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault()).format(new java.util.Date());
-
             // Simpan ke Database
-            FoodRecord manualRecord = new FoodRecord(today, System.currentTimeMillis(), "Manual Input", cal, pro, manualImageBase64);
+            FoodRecord manualRecord = new FoodRecord(getCurrentDateString(), System.currentTimeMillis(), "Manual Input", cal, pro, manualImageBase64);
             AppDatabase.getInstance(this).foodDao().insertFood(manualRecord);
 
             // Refresh UI Piring & Layar
@@ -650,6 +639,17 @@ public class MainActivity extends AppCompatActivity {
         });
 
         dialog.show();
+        android.view.Window window = dialog.getWindow();
+        if (window != null) {
+            // Ambil ukuran layar HP saat ini
+            android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
+
+            // Atur lebarnya. 0.85 berarti 85% dari layar (biasanya 85% terlihat lebih pas dan proporsional daripada 75%)
+            int width = (int) (metrics.widthPixels * 0.85);
+
+            // Terapkan ke dialog (Tingginya biarkan menyesuaikan isi / WRAP_CONTENT)
+            window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
     }
     @Override
     protected void onResume() {

@@ -29,7 +29,8 @@ public interface FoodDao {
     List<String> getUniqueDates();
 
     // Mengambil 1 gambar terakhir berdasarkan tanggal
-    @Query("SELECT imageBase64 FROM food_records WHERE dateString = :date ORDER BY id DESC LIMIT 1")
+    // Mengambil gambar terakhir di hari itu YANG BUKAN string kosong
+    @Query("SELECT imageBase64 FROM food_records WHERE dateString = :date AND imageBase64 != '' ORDER BY id DESC LIMIT 1")
     String getLastImageByDate(String date);
 
     @androidx.room.Delete
