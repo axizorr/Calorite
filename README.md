@@ -7,6 +7,7 @@ Calorite adalah aplikasi Android *native* yang dirancang untuk mempermudah pelac
 *   📸 **AI Food Snapshot:** Hitung estimasi kalori dan protein secara instan hanya dengan memfoto makanan. AI akan menganalisis gambar dan menyimpan datanya secara otomatis.
 *   ✍️ **Manual Entry Fallback:** Fitur input manual presisi (dengan *smart placeholder* gambar) ketika AI kurang akurat atau saat mengonsumsi cemilan kecil, memastikan data nutrisi harian tetap valid 100%.
 *   📊 **Dynamic Progress Visualizer:** *Dashboard* interaktif dengan *progress bar* visual (menggunakan manipulasi `ClipDrawable`) yang terisi secara dinamis sesuai persentase target kalori dan protein harian (misal: 2000 kcal & 160gr protein).
+*   🗒️ **Recipe Notes:** Capek bolak balik ke browser atau media sosial untuk mencari resep favorit? Tinggal tambah kedalam Recipe Journal dalam aplikasi aja! Calorite juga berfungsi sebagai catatan resep untuk recook makanan-makanan favorit kamu!
 *   🗓️ **Comprehensive Daily History:**
     *   Tampilan riwayat makanan harian dengan *horizontal scrolling* (`RecyclerView`).
     *   Pop-up *fullscreen* untuk melihat kembali foto makanan yang telah di-*capture*.
