@@ -4,7 +4,11 @@ import com.google.ai.client.generativeai.GenerativeModel;
 import com.google.ai.client.generativeai.java.GenerativeModelFutures;
 import com.google.ai.client.generativeai.type.Content;
 import com.google.ai.client.generativeai.type.GenerateContentResponse;
-
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import java.util.Calendar;
 import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,6 +31,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.graphics.drawable.ClipDrawable;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.view.Gravity;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -49,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_PICK = 2;
     private static final int REQUEST_RECIPE_IMAGE_PICK = 3; // Kode khusus untuk resep
     private Bitmap selectedRecipeBitmap = null;
+    private String manualImageBase64 = ""; // Untuk menyimpan gambar manual
     private TextView tvFileNameGlobal; // Agar onActivityResult bisa mengubah teks di dialog
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,12 +62,25 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ImageView ivCal = findViewById(R.id.ivProgressCalorie);
+        // Minta Izin Notifikasi untuk Android 13+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                androidx.core.app.ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
+        android.widget.Button btnAddManual = findViewById(R.id.btnAddManual);
+        if (btnAddManual != null) {
+            btnAddManual.setOnClickListener(v -> showManualAddDialog());
+        }
+
+        // Panggil fungsi penjadwal alarm
+        setupMealReminders();
         if (ivCal != null) {
             android.graphics.drawable.Drawable drawableCal = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.img_plate_cal);
 
             // PERISAI ANTI CRASH: Cek apakah gambarnya beneran ada
             if (drawableCal != null) {
-                android.graphics.drawable.ClipDrawable clipCal = new android.graphics.drawable.ClipDrawable(drawableCal, android.view.Gravity.LEFT, android.graphics.drawable.ClipDrawable.HORIZONTAL);
+                android.graphics.drawable.ClipDrawable clipCal = new android.graphics.drawable.ClipDrawable(drawableCal, Gravity.START, android.graphics.drawable.ClipDrawable.HORIZONTAL);
                 ivCal.setImageDrawable(clipCal);
             } else {
                 // Munculkan pesan di Logcat kalau gambarnya hilang, biar kita tahu tanpa bikin aplikasi crash
@@ -75,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
             android.graphics.drawable.Drawable drawablePro = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.img_plate_pro);
 
             if (drawablePro != null) {
-                android.graphics.drawable.ClipDrawable clipPro = new android.graphics.drawable.ClipDrawable(drawablePro, android.view.Gravity.LEFT, android.graphics.drawable.ClipDrawable.HORIZONTAL);
+                android.graphics.drawable.ClipDrawable clipPro = new android.graphics.drawable.ClipDrawable(drawablePro, Gravity.START, android.graphics.drawable.ClipDrawable.HORIZONTAL);
                 ivPro.setImageDrawable(clipPro);
             } else {
                 android.util.Log.e("CALORITE_ERROR", "Gawat! Gambar img_plate_pro.png tidak ditemukan!");
@@ -541,7 +560,96 @@ public class MainActivity extends AppCompatActivity {
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
         return sdf.format(new Date());
     }
+    private void setupMealReminders() {
+        // Jadwal jam makan yang kamu mau (Format 24 Jam)
+        int[] mealHours = {7, 12, 16, 20};
 
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        for (int i = 0; i < mealHours.length; i++) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, mealHours[i]);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+
+            // Cerdas: Jika jam tersebut sudah lewat hari ini, pasang untuk besok agar tidak langsung bunyi saat ini juga
+            if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+                calendar.add(Calendar.DAY_OF_YEAR, 1);
+            }
+
+            Intent intent = new Intent(this, NotificationReceiver.class);
+            // i digunakan sebagai RequestCode agar 4 alarm ini dianggap berbeda, bukan saling menimpa
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    this, i, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+
+            // Pasang weker berulang setiap hari (setInexactRepeating ramah baterai HP)
+            if (alarmManager != null) {
+                alarmManager.setInexactRepeating(
+                        AlarmManager.RTC_WAKEUP,
+                        calendar.getTimeInMillis(),
+                        AlarmManager.INTERVAL_DAY,
+                        pendingIntent
+                );
+            }
+        }
+    }
+    private void showManualAddDialog() {
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        dialog.setContentView(R.layout.dialog_add_manual);
+        dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+
+        android.widget.Button btnChooseFile = dialog.findViewById(R.id.btnChooseFile);
+        android.widget.EditText etCal = dialog.findViewById(R.id.etManualCal);
+        android.widget.EditText etPro = dialog.findViewById(R.id.etManualPro);
+        android.widget.Button btnSave = dialog.findViewById(R.id.btnSaveManual);
+
+        // Reset variabel setiap kali dialog dibuka
+        manualImageBase64 = "";
+
+        // Fungsi pilih file (Bisa kamu sambungkan ke intent gallery nanti)
+        btnChooseFile.setOnClickListener(v -> {
+            android.widget.Toast.makeText(this, "Pilih dari Galeri (Implementasi menyusul)", android.widget.Toast.LENGTH_SHORT).show();
+            // TODO: Buka Intent Gallery di sini jika diperlukan
+        });
+
+        btnSave.setOnClickListener(v -> {
+            String calStr = etCal.getText().toString();
+            String proStr = etPro.getText().toString();
+
+            if (calStr.isEmpty() || proStr.isEmpty()) {
+                android.widget.Toast.makeText(this, "Kalori dan Protein wajib diisi!", android.widget.Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            int cal = Integer.parseInt(calStr);
+            int pro = Integer.parseInt(proStr);
+
+            // LOGIKA PLACEHOLDER JIKA USER TIDAK PILIH GAMBAR
+            if (manualImageBase64.isEmpty()) {
+                android.graphics.Bitmap placeholderBitmap = android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.placeholder_write);
+                java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+                placeholderBitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, bos);
+                manualImageBase64 = android.util.Base64.encodeToString(bos.toByteArray(), android.util.Base64.DEFAULT);
+            }
+
+            // Dapatkan tanggal hari ini (Samakan formatnya dengan DB kamu)
+            String today = new java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault()).format(new java.util.Date());
+
+            // Simpan ke Database
+            FoodRecord manualRecord = new FoodRecord(today, System.currentTimeMillis(), "Manual Input", cal, pro, manualImageBase64);
+            AppDatabase.getInstance(this).foodDao().insertFood(manualRecord);
+
+            // Refresh UI Piring & Layar
+            updateDashboardUI();
+
+            android.widget.Toast.makeText(this, "Calorite berhasil ditambah!", android.widget.Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
     @Override
     protected void onResume() {
         super.onResume();

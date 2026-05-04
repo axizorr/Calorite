@@ -184,14 +184,24 @@
             android:id="@+id/btnCapture"
             android:layout_width="0dp"
             android:layout_height="60dp"
-            android:layout_marginEnd="64dp"
-            android:layout_marginStart="64dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:backgroundTint="@color/pastelgreen"
             android:fontFamily="@font/afacad"
             android:text="Capture  📷"
             android:textColor="#000000"
             android:textSize="24sp" />
+        <Button
+            android:id="@+id/btnAddManual"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="0.9"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="#FED563"
+            android:text="Add Manually ➕"
+            android:textColor="#000000" />
 
     </LinearLayout>
 
