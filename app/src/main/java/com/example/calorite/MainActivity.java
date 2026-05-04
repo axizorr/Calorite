@@ -610,8 +610,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Fungsi pilih file (Bisa kamu sambungkan ke intent gallery nanti)
         btnChooseFile.setOnClickListener(v -> {
-            android.widget.Toast.makeText(this, "Pilih dari Galeri (Implementasi menyusul)", android.widget.Toast.LENGTH_SHORT).show();
-            // TODO: Buka Intent Gallery di sini jika diperlukan
+            android.widget.Toast.makeText(this, "Pilih dari Galeri", android.widget.Toast.LENGTH_SHORT).show();
+            Intent pickPhotoIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(pickPhotoIntent, REQUEST_IMAGE_PICK);
         });
 
         btnSave.setOnClickListener(v -> {
