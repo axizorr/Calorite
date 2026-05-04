@@ -46,7 +46,7 @@ Jika kamu ingin menjalankan kode sumber Calorite di Android Studio lokalmu, ikut
 ## 📥 Unduh Versi Rilis
 
 Tidak ingin kompilasi kode? Unduh langsung file APK terbaru untuk langsung dipasang di HP Android kamu!
-*   [Download Calorite v1.0.0 APK](#) *(Catatan: Ganti tanda # dengan link file APK-mu nanti)*
+*   [Download Calorite v1.0.0 APK](https://github.com/axizorr/Calorite/releases/tag/v1.0.0) *
 
 ## 📄 Lisensi
 
