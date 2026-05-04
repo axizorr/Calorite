@@ -340,8 +340,8 @@ public class MainActivity extends AppCompatActivity {
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
     private void analyzeFoodWithAI(Bitmap imageBitmap, String base64Image, String userHint) {
-        // 1. Inisialisasi Model (Gunakan API Key kamu)
-        GenerativeModel gm = new GenerativeModel("gemini-2.5-flash-lite", "AIzaSyBp4YRQDg3nmYZiimJJkfBbtHDNvXFKXtM");
+        String apiKey = BuildConfig.API_KEY;
+        GenerativeModel gm = new GenerativeModel("gemini-2.5-flash-lite", apiKey);
         GenerativeModelFutures model = GenerativeModelFutures.from(gm);
 
         // 2. Siapkan Prompt
