@@ -605,17 +605,19 @@ public class MainActivity extends AppCompatActivity {
         android.widget.EditText etCal = dialog.findViewById(R.id.etManualCal);
         android.widget.EditText etPro = dialog.findViewById(R.id.etManualPro);
         android.widget.Button btnSave = dialog.findViewById(R.id.btnSaveManual);
+        Button btnAddFromRecipe = dialog.findViewById(R.id.btnTambahDariRecipe);
 
         // Reset variabel setiap kali dialog dibuka
         manualImageBase64 = "";
 
-        // Fungsi pilih file (Bisa kamu sambungkan ke intent gallery nanti)
+        // Fungsi pilih file
         btnChooseFile.setOnClickListener(v -> {
             android.widget.Toast.makeText(this, "Pilih dari Galeri", android.widget.Toast.LENGTH_SHORT).show();
             Intent pickPhotoIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(pickPhotoIntent, REQUEST_IMAGE_PICK);
         });
 
+        // Simpan Manual
         btnSave.setOnClickListener(v -> {
             String calStr = etCal.getText().toString();
             String proStr = etPro.getText().toString();
@@ -627,6 +629,7 @@ public class MainActivity extends AppCompatActivity {
 
             int cal = Integer.parseInt(calStr);
             int pro = Integer.parseInt(proStr);
+
             // Simpan ke Database
             FoodRecord manualRecord = new FoodRecord(getCurrentDateString(), System.currentTimeMillis(), "Manual Input", cal, pro, manualImageBase64);
             AppDatabase.getInstance(this).foodDao().insertFood(manualRecord);
@@ -638,18 +641,97 @@ public class MainActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        dialog.show();
+        // AKSI TAMBAH DARI RECIPE (BUKA DIALOG BARU)
+        btnAddFromRecipe.setOnClickListener(v -> {
+            dialog.dismiss(); // 1. Tutup dialog manual input terlebih dahulu
+            showPickRecipeDialog(); // 2. Buka dialog pilih resep
+        });
+
+        // Sizing Dialog Manual Input
         android.view.Window window = dialog.getWindow();
         if (window != null) {
-            // Ambil ukuran layar HP saat ini
             android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
-
-            // Atur lebarnya. 0.85 berarti 85% dari layar (biasanya 85% terlihat lebih pas dan proporsional daripada 75%)
             int width = (int) (metrics.widthPixels * 0.85);
-
-            // Terapkan ke dialog (Tingginya biarkan menyesuaikan isi / WRAP_CONTENT)
             window.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         }
+
+        dialog.show(); // Tampilkan dialog manual
+    }
+
+    // BUAT FUNGSI TERPISAH UNTUK PICK RECIPE DIALOG
+    private void showPickRecipeDialog() {
+        Dialog pickDialog = new Dialog(this);
+        pickDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        pickDialog.setContentView(R.layout.dialog_pick_recipe);
+
+        if (pickDialog.getWindow() != null) {
+            pickDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+
+        RecyclerView rvPickRecipe = pickDialog.findViewById(R.id.rvPickRecipeList);
+        EditText etSearch = pickDialog.findViewById(R.id.etSearchRecipe);
+        Button btnConfirm = pickDialog.findViewById(R.id.btnConfirmPickRecipe);
+
+        // PROTEKSI: Cek apakah RecyclerView ditemukan di XML
+        if (rvPickRecipe != null) {
+            rvPickRecipe.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+
+            List<RecipeRecord> recipeList = AppDatabase.getInstance(MainActivity.this).recipeDao().getAllRecipes();
+            PickRecipeAdapter adapter = new PickRecipeAdapter(MainActivity.this, recipeList);
+            rvPickRecipe.setAdapter(adapter);
+
+            // 1. Fitur Search Real-time
+            if (etSearch != null) {
+                etSearch.addTextChangedListener(new android.text.TextWatcher() {
+                    @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                    @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        adapter.filter(s.toString());
+                    }
+                    @Override public void afterTextChanged(android.text.Editable s) {}
+                });
+            }
+
+            // 2. Aksi Tombol Confirm
+            if (btnConfirm != null) {
+                btnConfirm.setOnClickListener(v -> {
+                    RecipeRecord selectedRecipe = adapter.getSelectedRecipe();
+
+                    if (selectedRecipe == null) {
+                        Toast.makeText(MainActivity.this, "Pilih salah satu resep terlebih dahulu!", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    // Simpan ke food_records (Jurnal Harian)
+                    String todayDate = getCurrentDateString();
+                    FoodRecord newFood = new FoodRecord(
+                            todayDate,
+                            System.currentTimeMillis(),
+                            selectedRecipe.recipeName,
+                            selectedRecipe.calories,
+                            selectedRecipe.protein,
+                            selectedRecipe.imageBase64
+                    );
+
+                    AppDatabase.getInstance(MainActivity.this).foodDao().insertFood(newFood);
+                    Toast.makeText(MainActivity.this, selectedRecipe.recipeName + " berhasil ditambahkan!", Toast.LENGTH_SHORT).show();
+
+                    pickDialog.dismiss();
+                    updateDashboardUI();
+                });
+            }
+        } else {
+            Toast.makeText(this, "Error: RecyclerView rvPickRecipeList tidak ditemukan di XML!", Toast.LENGTH_LONG).show();
+        }
+
+        // Ukuran Dialog
+        Window window = pickDialog.getWindow();
+        if (window != null) {
+            android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
+            int width = (int) (metrics.widthPixels * 0.85);
+            window.setLayout(width, WindowManager.LayoutParams.WRAP_CONTENT);
+        }
+
+        pickDialog.show();
     }
     @Override
     protected void onResume() {

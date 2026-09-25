@@ -75,5 +75,15 @@
         android:fontFamily="@font/afacad"
         android:textColor="#000000"
         android:textStyle="bold" />
+    <Button
+        android:id="@+id/btnTambahDariRecipe"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:backgroundTint="#DAFE63"
+        android:fontFamily="@font/afacad"
+        android:text="Tambah dari Recipe"
+        android:textColor="#000000"
+        android:textStyle="bold" />
 
 </LinearLayout>
