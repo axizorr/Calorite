@@ -45,9 +45,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
             finish();
         }
 
-        // Tombol Kembali (Asumsi ID di XML: btnBack)
-        // ImageView btnBack = findViewById(R.id.btnBack);
-        // btnBack.setOnClickListener(v -> finish());
+//         Tombol Kembali (Asumsi ID di XML: btnBack)
+         ImageView btnBack = findViewById(R.id.btnBack);
+         btnBack.setOnClickListener(v -> finish());
 
         // Tombol Edit (Asumsi ID di XML: btnEditRecipe)
         Button btnEdit = findViewById(R.id.btnEditRecipe);

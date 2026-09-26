@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
     private static final int REQUEST_RECIPE_IMAGE_PICK = 3; // Kode khusus untuk resep
+    private Dialog loadingDialog; // <-- TAMBAHKAN INI
     private Bitmap selectedRecipeBitmap = null;
     private String manualImageBase64 = ""; // Untuk menyimpan gambar manual
     private TextView tvFileNameGlobal; // Agar onActivityResult bisa mengubah teks di dialog
@@ -110,7 +111,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         ImageView btnSettings = findViewById(R.id.btnSettings);
-        Button btnAddRecipe = findViewById(R.id.btnAddRecipe);
 
         // Aksi ketika tombol Settings ditekan
         btnSettings.setOnClickListener(v -> {
@@ -143,83 +143,6 @@ public class MainActivity extends AppCompatActivity {
             dialog.show();
         });
 
-        // Aksi ketika tombol Add Recipe ditekan
-        btnAddRecipe.setOnClickListener(v -> {
-            Dialog dialog = new Dialog(MainActivity.this);
-            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-            dialog.setContentView(R.layout.dialog_add_recipe);
-
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
-            Button btnDeleteRecipe = dialog.findViewById(R.id.btnDeleteRecipe);
-            if (btnDeleteRecipe != null) {
-                btnDeleteRecipe.setVisibility(android.view.View.GONE); // Hilangkan tombol saat nambah resep
-            }
-            TextView btnClose = dialog.findViewById(R.id.btnCloseAdd);
-            btnClose.setOnClickListener(view -> dialog.dismiss());
-
-            // Kenalkan elemen-elemen baru
-            Button btnChooseFile = dialog.findViewById(R.id.btnChooseFile);
-            tvFileNameGlobal = dialog.findViewById(R.id.tvFileName);
-            Button btnConfirmRecipe = dialog.findViewById(R.id.btnConfirmRecipe);
-
-            EditText etRecipeName = dialog.findViewById(R.id.etRecipeName);
-            EditText etCal = dialog.findViewById(R.id.etCal);
-            EditText etPro = dialog.findViewById(R.id.etPro);
-            EditText etRecipeDetails = dialog.findViewById(R.id.etRecipeDetails);
-
-            // Reset gambar tiap kali dialog dibuka
-            selectedRecipeBitmap = null;
-            tvFileNameGlobal.setText("No file chosen");
-
-            // AKSI 1: Membuka Galeri
-            btnChooseFile.setOnClickListener(view -> {
-                Intent pickPhotoIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(pickPhotoIntent, REQUEST_RECIPE_IMAGE_PICK);
-            });
-
-            // AKSI 2: Menekan Confirm
-            btnConfirmRecipe.setOnClickListener(view -> {
-                String name = etRecipeName.getText().toString();
-                String calStr = etCal.getText().toString();
-                String proStr = etPro.getText().toString();
-                String details = etRecipeDetails.getText().toString();
-
-                // Validasi agar tidak ada kotak kosong (bisa bikin aplikasi crash!)
-                if(name.isEmpty() || calStr.isEmpty() || proStr.isEmpty()) {
-                    Toast.makeText(this, "Mohon isi nama, kalori, dan protein!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                int cal = Integer.parseInt(calStr);
-                int pro = Integer.parseInt(proStr);
-
-                // Ubah gambar ke Base64 (jika user memilih gambar)
-                String base64Image = "";
-                if (selectedRecipeBitmap != null) {
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    selectedRecipeBitmap.compress(Bitmap.CompressFormat.JPEG, 80, baos);
-                    byte[] imageBytes = baos.toByteArray();
-                    base64Image = Base64.encodeToString(imageBytes, Base64.NO_WRAP);
-                }
-
-                RecipeRecord newRecipe = new RecipeRecord(name, cal, pro, details, base64Image);
-                AppDatabase.getInstance(MainActivity.this).recipeDao().insertRecipe(newRecipe);
-
-                Toast.makeText(this, "Resep " + name + " siap disimpan!", Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-                updateDashboardUI();
-            });
-
-            dialog.show();
-        });
-
-        // 1. Panggil rvHistory dari XML
-        RecyclerView rvHistory = findViewById(R.id.rvHistory);
-
-        // 2. Atur arah scroll jadi menyamping (Horizontal)
-        rvHistory.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-
         Button btnCapture = findViewById(R.id.btnCapture);
 
         btnCapture.setOnClickListener(v -> {
@@ -242,6 +165,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             builder.show();
+        });
+        // Aksi klik menu Saved Recipes
+        android.widget.LinearLayout btnMenuRecipes = findViewById(R.id.btnMenuRecipes);
+        btnMenuRecipes.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SavedRecipesActivity.class);
+            startActivity(intent);
+        });
+
+        // Aksi klik menu Calorite History
+        android.widget.LinearLayout btnMenuHistory = findViewById(R.id.btnMenuHistory);
+        btnMenuHistory.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, HistoryListActivity.class);
+            startActivity(intent);
         });
         updateDashboardUI();
     }
@@ -282,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
                         dialogHint.requestWindowFeature(Window.FEATURE_NO_TITLE);
                         dialogHint.setContentView(R.layout.dialog_hint);
 
-                        // Bikin latar belakang di luar pop-up jadi transparan/gelap
                         dialogHint.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                         dialogHint.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
 
@@ -290,12 +225,29 @@ public class MainActivity extends AppCompatActivity {
                         Button btnSkip = dialogHint.findViewById(R.id.btnSkipHint);
                         Button btnAnalyze = dialogHint.findViewById(R.id.btnAnalyzeHint);
 
+                        // --- BARIS TAMBAHAN UNTUK FOTO & TOMBOL RETAKE ---
+                        ImageView ivHintImage = dialogHint.findViewById(R.id.ivHintImage);
+                        androidx.cardview.widget.CardView btnRetake = dialogHint.findViewById(R.id.btnRetakeImage);
+
+                        if (ivHintImage != null) {
+                            ivHintImage.setImageBitmap(resizedBitmap); // Pasang gambar hasil jepretan
+                        }
+
+                        if (btnRetake != null) {
+                            btnRetake.setOnClickListener(v -> {
+                                dialogHint.dismiss(); // Tutup dialog saat ini
+                                // Simulasikan menekan tombol Capture lagi untuk mengulang!
+                                findViewById(R.id.btnCapture).performClick();
+                            });
+                        }
+                        // -------------------------------------------------
+
                         // Aksi jika tombol "Analisis" ditekan
                         btnAnalyze.setOnClickListener(v -> {
                             String hint = etHint.getText().toString();
                             String finalBase64 = bitmapToBase64(resizedBitmap);
 
-                            Toast.makeText(MainActivity.this, "AI sedang menghitung...", Toast.LENGTH_SHORT).show();
+                            showLoadingDialog();
                             analyzeFoodWithAI(resizedBitmap, finalBase64, hint);
                             dialogHint.dismiss();
                         });
@@ -303,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
                         // Aksi jika tombol "Lewati" ditekan
                         btnSkip.setOnClickListener(v -> {
                             String finalBase64 = bitmapToBase64(resizedBitmap);
-                            Toast.makeText(MainActivity.this, "AI sedang menghitung...", Toast.LENGTH_SHORT).show();
+
+                            showLoadingDialog();
                             analyzeFoodWithAI(resizedBitmap, finalBase64, "Tidak ada keterangan tambahan.");
                             dialogHint.dismiss();
                         });
@@ -374,21 +327,25 @@ public class MainActivity extends AppCompatActivity {
 
                         String estKalori = String.valueOf(resultJson.getInt("kalori"));
                         String estProtein = String.valueOf(resultJson.getInt("protein"));
-
-                        // 1. TAMBAHKAN BARIS INI UNTUK MENGAMBIL TEKS RINCIAN:
                         String estDetail = resultJson.optString("detail", "Detail tidak tersedia.");
 
-                        // 2. UBAH PEMANGGILAN DIALOGNYA JADI BEGINI (tambah variabel estDetail):
-                        runOnUiThread(() -> showConfirmDialog(estKalori, estProtein, estDetail, base64Image));
+                        runOnUiThread(() -> {
+                            hideLoadingDialog(); // <-- MATIKAN LOADING
+                            // BAWA imageBitmap KE FUNGSI KONFIRMASI BAWAH 👇
+                            showConfirmDialog(estKalori, estProtein, estDetail, base64Image, imageBitmap);
+                        });
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    runOnUiThread(() -> Toast.makeText(this, "AI gagal memproses gambar.", Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> {
+                        hideLoadingDialog(); // <-- MATIKAN LOADING SAAT ERROR
+                        Toast.makeText(this, "AI gagal memproses gambar.", Toast.LENGTH_SHORT).show();
+                    });
                 }
             }, getMainExecutor());
         }
     }
-    private void showConfirmDialog(String kalori, String protein, String detail, String base64Image) {
+    private void showConfirmDialog(String kalori, String protein, String detail, String base64Image, Bitmap foodBitmap) {
         Dialog dialog = new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.dialog_confirm);
@@ -400,9 +357,11 @@ public class MainActivity extends AppCompatActivity {
         EditText etEstPro = dialog.findViewById(R.id.etEstPro);
         Button btnConfirm = dialog.findViewById(R.id.btnConfirm);
         TextView tvDetailAnalysis = dialog.findViewById(R.id.tvDetailAnalysis);
+        ImageView ivConfirmImage = dialog.findViewById(R.id.ivConfirmImage);
+        if (ivConfirmImage != null && foodBitmap != null) {
+            ivConfirmImage.setImageBitmap(foodBitmap);
+        }
 
-        etEstCal.setText(kalori);
-        etEstPro.setText(protein);
         etEstCal.setText(kalori);
         etEstPro.setText(protein);
         if (tvDetailAnalysis != null) {
@@ -507,42 +466,6 @@ public class MainActivity extends AppCompatActivity {
         if (ivProgressProtein != null && ivProgressProtein.getDrawable() instanceof android.graphics.drawable.ClipDrawable) {
             ivProgressProtein.getDrawable().setLevel(levelProClip);
         }
-
-        // --- 2. UPDATE BAGIAN BAWAH (DAFTAR HISTORI ASLI) ---
-        RecyclerView rvHistory = findViewById(R.id.rvHistory);
-        rvHistory.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false));
-
-        // Ambil semua tanggal yang ada di database
-        List<String> savedDates = db.foodDao().getUniqueDates();
-        List<HistorySummary> realHistoryList = new java.util.ArrayList<>();
-
-        // Hitung total kalori dan ambil gambar terakhir untuk masing-masing tanggal
-        for (String date : savedDates) {
-            int totalCalForDate = db.foodDao().getTotalCaloriesByDate(date);
-            int percentForDate = (int) (((float) totalCalForDate / targetCal) * 100);
-
-            // Tarik gambar terakhir dari database
-            String lastImage = db.foodDao().getLastImageByDate(date);
-
-
-            // Masukkan gambar ke dalam daftar
-            realHistoryList.add(new HistorySummary(date, String.valueOf(totalCalForDate), percentForDate + "%", lastImage));
-        }
-
-        // Pasang ke layar
-        HistoryAdapter historyAdapter = new HistoryAdapter(this, realHistoryList);
-        rvHistory.setAdapter(historyAdapter);
-
-        // --- 3. UPDATE DAFTAR SAVED RECIPES ---
-        RecyclerView rvSavedRecipes = findViewById(R.id.rvSavedRecipes);
-        rvSavedRecipes.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this, androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false));
-
-        // Ambil data asli dari database
-        List<RecipeRecord> savedRecipesList = db.recipeDao().getAllRecipes();
-
-        // Pasang ke Adapter baru
-        RecipeAdapter recipeAdapter = new RecipeAdapter(this, savedRecipesList);
-        rvSavedRecipes.setAdapter(recipeAdapter);
     }
     // Fungsi untuk menyimpan Target Protein
     private void saveTargetProtein(int target) {
@@ -732,6 +655,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         pickDialog.show();
+    }
+    private void showLoadingDialog() {
+        if (loadingDialog == null) {
+            loadingDialog = new Dialog(MainActivity.this);
+            loadingDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            loadingDialog.setContentView(R.layout.dialog_loading);
+            loadingDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            loadingDialog.setCancelable(false); // KUNCI LAYAR: User tidak bisa asal pencet di luar pop-up
+        }
+        loadingDialog.show();
+    }
+
+    private void hideLoadingDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+        }
     }
     @Override
     protected void onResume() {

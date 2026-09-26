@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:padding="20dp">
+
+    <!-- Header / Top Bar -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:id="@+id/btnBackSavedRecipes"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_centerVertical="true"
+            android:src="@android:drawable/ic_menu_revert"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <TextView
+            android:id="@+id/tvTitleSavedRecipes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/btnBackSavedRecipes"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="12dp"
+            android:text="Saved Recipes"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:fontFamily="@font/afacad"/>
+
+        <Button
+            android:id="@+id/btnAddRecipeSaved"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:text="Add +"
+            android:textAllCaps="false"
+            android:backgroundTint="#F25B5B"
+            android:textColor="@color/black"
+            android:fontFamily="@font/afacad"
+            app:cornerRadius="8dp"/>
+    </RelativeLayout>
+
+    <!-- Search Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/gray_light"
+        android:paddingHorizontal="12dp"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@android:drawable/ic_menu_search"
+            app:tint="#888888" />
+
+        <EditText
+            android:id="@+id/etSearchSavedRecipes"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:hint="Search..."
+            android:textSize="14sp"
+            android:paddingStart="8dp"
+            android:fontFamily="@font/afacad"
+            android:singleLine="true"
+            android:imeOptions="actionSearch"/>
+    </LinearLayout>
+
+    <!-- Daftar Resep Vertikal -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvVerticalSavedRecipes"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"/>
+</LinearLayout>

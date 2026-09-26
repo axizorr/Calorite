@@ -36,7 +36,6 @@ public class PickRecipeAdapter extends RecyclerView.Adapter<PickRecipeAdapter.Pi
         RecipeRecord recipe = recipeListFiltered.get(position);
 
         if (holder.tvRecipeTitle != null) holder.tvRecipeTitle.setText(recipe.recipeName);
-        if (holder.tvRecipeTitle != null) holder.tvRecipeTitle.setText(recipe.recipeName);
         if (holder.tvRecipeCal != null) holder.tvRecipeCal.setText(recipe.calories + " kcal 🔥");
         if (holder.tvRecipePro != null) holder.tvRecipePro.setText(recipe.protein + " gr 🥩");
 

@@ -38,17 +38,6 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
         holder.tvHistoryCal.setText(summary.getTotalCalories() + " kcal");
         holder.tvHistoryPercent.setText(summary.getPercentage() + " Calorie reached");
 
-        if (summary.getImageBase64() != null && !summary.getImageBase64().isEmpty()) {
-            try {
-                byte[] decodedString = android.util.Base64.decode(summary.getImageBase64(), android.util.Base64.DEFAULT);
-                android.graphics.Bitmap decodedByte = android.graphics.BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                holder.ivHistoryThumb.setImageBitmap(decodedByte);
-                holder.ivHistoryThumb.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
         // FUNGSI KLIK: Pindah ke halaman Detail Histori (Halaman yang ada Notes-nya)
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, HistoryDetailActivity.class);

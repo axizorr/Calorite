@@ -26,114 +26,55 @@ public class HistoryDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history_detail);
-        ImageView ivCal = findViewById(R.id.ivProgressCalorie);
-        if (ivCal != null) {
-            android.graphics.drawable.Drawable drawableCal = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.img_plate_cal);
 
-            // PERISAI ANTI CRASH: Cek apakah gambarnya beneran ada
-            if (drawableCal != null) {
-                android.graphics.drawable.ClipDrawable clipCal = new android.graphics.drawable.ClipDrawable(drawableCal, android.view.Gravity.LEFT, android.graphics.drawable.ClipDrawable.HORIZONTAL);
-                ivCal.setImageDrawable(clipCal);
-            } else {
-                // Munculkan pesan di Logcat kalau gambarnya hilang, biar kita tahu tanpa bikin aplikasi crash
-                android.util.Log.e("CALORITE_ERROR", "Gawat! Gambar img_plate_cal.png tidak ditemukan!");
-            }
-        }
-
-        // --- MANTRA SUPER AMAN UNTUK PROTEIN ---
-        ImageView ivPro = findViewById(R.id.ivProgressProtein);
-        if (ivPro != null) {
-            android.graphics.drawable.Drawable drawablePro = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.img_plate_pro);
-
-            if (drawablePro != null) {
-                android.graphics.drawable.ClipDrawable clipPro = new android.graphics.drawable.ClipDrawable(drawablePro, android.view.Gravity.LEFT, android.graphics.drawable.ClipDrawable.HORIZONTAL);
-                ivPro.setImageDrawable(clipPro);
-            } else {
-                android.util.Log.e("CALORITE_ERROR", "Gawat! Gambar img_plate_pro.png tidak ditemukan!");
-            }
-        }
-        refreshDailyData();
-
-        ImageView btnBackHistory = findViewById(R.id.btnBackHistory);
-        btnBackHistory.setOnClickListener(v -> finish()); // Tombol kembali
-
-        // 1. Terima tanggal dari Dasbor
+        // 1. TERIMA TANGGAL DARI INTENT TERLEBIH DAHULU (PENTING!)
         selectedDate = getIntent().getStringExtra("HISTORY_DATE");
         if (selectedDate == null) selectedDate = "Unknown Date";
 
         TextView tvDetailDateTitle = findViewById(R.id.tvDetailDateTitle);
         tvDetailDateTitle.setText(selectedDate);
 
-        // 2. Ambil Data dari Database
+        // 2. SETUP DRAWABLE PIRING & PROTEIN
+        ImageView ivCal = findViewById(R.id.ivProgressCalorie);
+        if (ivCal != null) {
+            android.graphics.drawable.Drawable drawableCal = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.img_plate_cal);
+            if (drawableCal != null) {
+                android.graphics.drawable.ClipDrawable clipCal = new android.graphics.drawable.ClipDrawable(drawableCal, android.view.Gravity.LEFT, android.graphics.drawable.ClipDrawable.HORIZONTAL);
+                ivCal.setImageDrawable(clipCal);
+            }
+        }
+
+        ImageView ivPro = findViewById(R.id.ivProgressProtein);
+        if (ivPro != null) {
+            android.graphics.drawable.Drawable drawablePro = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.img_plate_pro);
+            if (drawablePro != null) {
+                android.graphics.drawable.ClipDrawable clipPro = new android.graphics.drawable.ClipDrawable(drawablePro, android.view.Gravity.LEFT, android.graphics.drawable.ClipDrawable.HORIZONTAL);
+                ivPro.setImageDrawable(clipPro);
+            }
+        }
+
+        // 3. TOMBOL BACK
+        ImageView btnBackHistory = findViewById(R.id.btnBackHistory);
+        btnBackHistory.setOnClickListener(v -> finish());
+
+        // 4. AMBIL DATA & PASANG ADAPTER RECYCLERVIEW
         AppDatabase db = AppDatabase.getInstance(this);
         List<FoodRecord> dailyFoods = db.foodDao().getFoodsByDate(selectedDate);
 
-        // 3. Hitung Total Kalori & Protein
-        int totalCal = 0;
-        int totalProtein = 0;
-        for (FoodRecord food : dailyFoods) {
-            totalCal += food.calories;
-            totalProtein += food.protein;
-        }
-
-        // 4. Update Teks UI
-        TextView tvDetailTotalCal = findViewById(R.id.tvDetailTotalCal);
-        TextView tvDetailPercent = findViewById(R.id.tvDetailPercent);
-        TextView tvDetailProteinTotal = findViewById(R.id.tvDetailProteinTotal);
-
-        tvDetailTotalCal.setText("Calorites - Total " + totalCal + " kcal");
-        tvDetailProteinTotal.setText("with " + totalProtein + "gr Protein");
-
-        // --- TAMBAHAN KALKULASI PERSENTASE & GAMBAR PIRING ---
-        int targetCal = getTargetCalorie();
-        int targetPro = getTargetProtein();
-        if (targetCal == 0) targetCal = 1; // Mencegah error dibagi nol
-        if (targetPro == 0) targetPro = 1;
-
-        int percentCal = (int) (((float) totalCal / targetCal) * 100);
-        int percentPro = (int) (((float) totalProtein / targetPro) * 100);
-
-        if (tvDetailPercent != null) {
-            tvDetailPercent.setText(percentCal + "% Daily Calories Reached");
-        }
-
-        // Potong gambar piring
-        int levelCalClip = Math.min(percentCal, 100) * 100;
-        // percentPro adalah persentase aslimu (misal 27%)
-        int percentProMentok = Math.min(percentPro, 100);
-
-        // Titik awal daging (misal 20% dari kiri kanvas = 2000)
-        int startOffset = 2000;
-
-        // Pengali rentang (dari 20% ke 60% = rentang 40% = pengali 40)
-        int levelProClip = startOffset + (percentProMentok * 40);
-
-        // Kalau belum makan protein sama sekali (0%), kembalikan ke 0 biar aman
-        if (percentPro == 0) {
-            levelProClip = 0;
-        }
-
-        if (ivCal != null && ivCal.getDrawable() instanceof android.graphics.drawable.ClipDrawable) {
-            ivCal.getDrawable().setLevel(levelCalClip);
-        }
-        if (ivPro != null && ivPro.getDrawable() instanceof android.graphics.drawable.ClipDrawable) {
-            ivPro.getDrawable().setLevel(levelProClip);
-        }
-
-        // 6. Pasang Adapter ke RecyclerView
         RecyclerView rvDailyFoods = findViewById(R.id.rvDailyFoods);
         rvDailyFoods.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         DailyFoodAdapter adapter = new DailyFoodAdapter(this, dailyFoods);
         rvDailyFoods.setAdapter(adapter);
 
-        // 1. Inisialisasi kotak Notes (Sesuaikan ID-nya dengan yang ada di XML kamu)
-        etDailyNotes = findViewById(R.id.etDailyNotes); // <-- PASTIKAN ID INI BENAR
-
-        // 2. Tarik catatan lama (jika ada) saat halaman dibuka
-        DailyNote savedNote = AppDatabase.getInstance(this).noteDao().getNoteByDate(selectedDate);
+        // 5. INISIALISASI & LOAD NOTES
+        etDailyNotes = findViewById(R.id.etDailyNotes);
+        DailyNote savedNote = db.noteDao().getNoteByDate(selectedDate);
         if (savedNote != null && etDailyNotes != null) {
             etDailyNotes.setText(savedNote.noteText);
         }
+
+        // 6. HITUNG KALORI & UPDATE TEKS/PIRING (Dipanggil paling akhir setelah selectedDate siap)
+        refreshDailyData();
     }
 
     // Fungsi bantu untuk mengambil target kalori (Sama seperti di MainActivity)

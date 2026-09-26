@@ -16,10 +16,8 @@ import java.util.List;
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder> {
 
     private Context context;
-    // UBAH DI SINI: Gunakan RecipeRecord, bukan Recipe
     private List<RecipeRecord> recipeList;
 
-    // UBAH DI SINI JUGA
     public RecipeAdapter(Context context, List<RecipeRecord> recipeList) {
         this.context = context;
         this.recipeList = recipeList;
@@ -28,18 +26,19 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     @NonNull
     @Override
     public RecipeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_saved_recipe, parent, false);
+        // Panggil layout horizontal
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_history_list, parent, false);
         return new RecipeViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecipeViewHolder holder, int position) {
-        // UBAH DI SINI JUGA
         RecipeRecord recipe = recipeList.get(position);
 
         holder.tvRecipeTitle.setText(recipe.recipeName);
         holder.tvRecipeCal.setText("🔥 " + recipe.calories + " kcal");
-        holder.tvRecipePro.setText("🥩 " + recipe.protein + " gr");
+        holder.tvRecipePro.setText("🥩 " + recipe.protein + " gr Protein");
 
         if (recipe.imageBase64 != null && !recipe.imageBase64.isEmpty()) {
             try {
@@ -47,12 +46,15 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 holder.ivRecipeImage.setImageBitmap(decodedByte);
             } catch (Exception e) {
-                e.printStackTrace();
+                holder.ivRecipeImage.setImageResource(R.drawable.mealtrackbw);
             }
+        } else {
+            holder.ivRecipeImage.setImageResource(R.drawable.mealtrackbw);
         }
+
         holder.itemView.setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(context, RecipeDetailActivity.class);
-            intent.putExtra("RECIPE_ID", recipe.id); // Bawa "KTP" resepnya agar bisa dicari di database
+            intent.putExtra("RECIPE_ID", recipe.id);
             context.startActivity(intent);
         });
     }
@@ -68,10 +70,11 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
 
         public RecipeViewHolder(@NonNull View itemView) {
             super(itemView);
-            ivRecipeImage = itemView.findViewById(R.id.ivRecipeImage);
-            tvRecipeTitle = itemView.findViewById(R.id.tvRecipeTitle);
-            tvRecipeCal = itemView.findViewById(R.id.tvRecipeCal);
-            tvRecipePro = itemView.findViewById(R.id.tvRecipeProtein);
+            // REUSE ID DARI item_history_list.xml AGAR TIDAK CRASH
+            ivRecipeImage = itemView.findViewById(R.id.ivHistoryListThumb);
+            tvRecipeTitle = itemView.findViewById(R.id.tvHistoryListDate); // tvDate kita manfaatkan untuk Judul Resep
+            tvRecipeCal = itemView.findViewById(R.id.tvHistoryListCal);
+            tvRecipePro = itemView.findViewById(R.id.tvHistoryListProtein);
         }
     }
 }
